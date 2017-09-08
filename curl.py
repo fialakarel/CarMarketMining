@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 
-import requests
 import json
+
+import pandas as pd
+import requests
+
 import parser
-import sys
+
 
 def getData(page):
     params = (
@@ -26,56 +29,45 @@ def getData(page):
         ('model', '707'),
         ('nocache', '658'),
     )
-    
+
     r = requests.get('https://www.sauto.cz/hledani', params=params)
-    
+
     data = json.loads(r.text)
 
     # delete unrelevant information
     del data['ad']
-    del data['importKeys'] 
-    del data['checkBox']          # wtf?
-    del data['priorityAdvert']    # advertisement
-    
+    del data['importKeys']
+    del data['checkBox']  # wtf?
+    del data['priorityAdvert']  # advertisement
+
     # delete non data fields
-    del data['codebook']    # search options
-    del data['filter']    # search options too?
-    del data['manufacturer']    # Manufacturer + count
-    del data['equipments']    # car equipments
-    
-    
-    #data['paging']      # page informations
-    #data['resultSize']      # result size
-    #data['advert']      # adverts on selected page
+    del data['codebook']  # search options
+    del data['filter']  # search options too?
+    del data['manufacturer']  # Manufacturer + count
+    del data['equipments']  # car equipments
+
+    # data['paging']      # page informations
+    # data['resultSize']      # result size
+    # data['advert']      # adverts on selected page
 
     return data
 
 
-
-#print(json.dumps(data['resultSize'], indent=4, sort_keys=True))
-#print(json.dumps(data['advert'], indent=4, sort_keys=True))
-#print(json.dumps(data, indent=4, sort_keys=True))
+# print(json.dumps(data['resultSize'], indent=4, sort_keys=True))
+# print(json.dumps(data['advert'], indent=4, sort_keys=True))
+# print(json.dumps(data, indent=4, sort_keys=True))
 
 initdata = getData(1)
 
-#print("Per page: " + str(initdata['paging']['perPage']))
-firstRun = True
+# print("Per page: " + str(initdata['paging']['perPage']))
+cars = []
 
 for pageindex in initdata['paging']['pages']:
     page = pageindex['i']
-
     data = getData(page)
-
     for x in data['advert']:
-        #print(json.dumps(x, indent=4, sort_keys=True))
-        #print(x['advert_id'])
-        cp = parser.CarParser('skoda', 'fabia', x['advert_id'])
-        car = cp.parse()
-        if firstRun:
-            print(';'.join([str(key) for key, value in car.items()]))
-            firstRun = False
-        print(';'.join([str(value) for key, value in car.items()]))
-    
+        cars.append(parser.CarParser('skoda', 'fabia', x['advert_id']).parse())
 
-#print(json.dumps(data['advert'], indent=4, sort_keys=True))
-
+cars = dict(zip(cars[0], zip(*[d.values() for d in cars])))
+df_cars = pd.DataFrame(cars, columns=cars.keys())
+print(df_cars.head())

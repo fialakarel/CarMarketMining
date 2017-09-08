@@ -26,13 +26,6 @@ class CarParser:
         data['stk'] = self.parse_tr('STK:')
 
         return data
-
-        # Test:
-        #print(
-        #    "%s %s\nprice %d\nyear %d\nodometer %d\nfuel_type %s\ntransmission %s\nccm %d\nhp %s\none_owner %s\nservice_book %s\norigin_country %s\nSTK %s" % (
-        #    self.brand, self.model, price,
-        #    year, odometer, fuel_type, transmission, ccm, hp, one_owner, service_book, origin_country, STK))
-
         # TODO: complete features list and store it
 
     def parse_tr(self, key, digits=False):
