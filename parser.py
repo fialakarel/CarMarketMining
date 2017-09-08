@@ -12,23 +12,26 @@ class CarParser:
         self.soup = BeautifulSoup(r, "lxml")
 
     def parse(self):
-        price = int(re.sub("\D", "", self.soup.find_all("strong", itemprop='price')[0].get_text()))
-        year = int(self.soup.find_all("td", attrs={'data-sticky-header-value-src': 'year'})[0].get_text()[-4:])
-        odometer = int(self.parse_tr('Tachometr:', digits=True))
-        fuel_type = self.parse_tr('Palivo:')
-        transmission = self.parse_tr('Převodovka:')
-        ccm = int(self.parse_tr('Objem:', digits=True))
-        hp = self.parse_tr('Výkon:')
-        one_owner = self.parse_tr('První majitel:') == "ano"
-        service_book = self.parse_tr('Servisní knížka:') == "ano"
-        origin_country = self.parse_tr('Země původu:')
-        STK = self.parse_tr('STK:')
+        data = dict()
+        data['price'] = int(re.sub("\D", "", self.soup.find_all("strong", itemprop='price')[0].get_text()))
+        data['year'] = int(self.soup.find_all("td", attrs={'data-sticky-header-value-src': 'year'})[0].get_text()[-4:])
+        data['odometer'] = int(self.parse_tr('Tachometr:', digits=True))
+        data['fuel_type'] = self.parse_tr('Palivo:')
+        data['transmission'] = self.parse_tr('Převodovka:')
+        data['ccm'] = int(self.parse_tr('Objem:', digits=True))
+        data['hp'] = self.parse_tr('Výkon:')
+        data['one_owner'] = self.parse_tr('První majitel:') == "ano"
+        data['service_book'] = self.parse_tr('Servisní knížka:') == "ano"
+        data['origin_country'] = self.parse_tr('Země původu:')
+        data['stk'] = self.parse_tr('STK:')
+
+        return data
 
         # Test:
-        print(
-            "%s %s\nprice %d\nyear %d\nodometer %d\nfuel_type %s\ntransmission %s\nccm %d\nhp %s\none_owner %s\nservice_book %s\norigin_country %s\nSTK %s" % (
-            self.brand, self.model, price,
-            year, odometer, fuel_type, transmission, ccm, hp, one_owner, service_book, origin_country, STK))
+        #print(
+        #    "%s %s\nprice %d\nyear %d\nodometer %d\nfuel_type %s\ntransmission %s\nccm %d\nhp %s\none_owner %s\nservice_book %s\norigin_country %s\nSTK %s" % (
+        #    self.brand, self.model, price,
+        #    year, odometer, fuel_type, transmission, ccm, hp, one_owner, service_book, origin_country, STK))
 
         # TODO: complete features list and store it
 

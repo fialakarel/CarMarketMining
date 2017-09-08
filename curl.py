@@ -58,7 +58,8 @@ def getData(page):
 
 initdata = getData(1)
 
-print("Per page: " + str(initdata['paging']['perPage']))
+#print("Per page: " + str(initdata['paging']['perPage']))
+firstRun = True
 
 for pageindex in initdata['paging']['pages']:
     page = pageindex['i']
@@ -69,8 +70,11 @@ for pageindex in initdata['paging']['pages']:
         #print(json.dumps(x, indent=4, sort_keys=True))
         #print(x['advert_id'])
         cp = parser.CarParser('skoda', 'fabia', x['advert_id'])
-        cp.parse()
-        print("===== ===== ===== ===== =====")
+        car = cp.parse()
+        if firstRun:
+            print(';'.join([str(key) for key, value in car.items()]))
+            firstRun = False
+        print(';'.join([str(value) for key, value in car.items()]))
     
 
 #print(json.dumps(data['advert'], indent=4, sort_keys=True))
