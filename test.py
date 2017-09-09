@@ -1,4 +1,4 @@
 import parser
 
-cp = parser.CarParser('skoda', 'fabia', 17368674)
-cp.parse()
+pp = parser.PageParser(debug=True)
+df = pp.get_data()
