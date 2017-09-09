@@ -15,6 +15,7 @@ class CarParser:
     def __init__(self, manufacturer=None, model=None, id=None, debug=False):
         self.manufacturer = manufacturer
         self.model = model
+        self.id = id
         if id:
             r = requests.get('https://www.sauto.cz/osobni/detail/%s/%s/%d' % (manufacturer, model, id)).text
             self.soup = BeautifulSoup(r, "lxml")
@@ -57,10 +58,11 @@ class CarParser:
         if id is not None:
             r = requests.get('https://www.sauto.cz/osobni/detail/%s/%s/%d' % (manufacturer, model, id)).text
             self.soup = BeautifulSoup(r, "lxml")
+            self.id = id
         data = dict()
-        data['advert_id'] = str(id)
-        data['manufacturer'] = manufacturer
-        data['model'] = model
+        data['advert_id'] = str(self.id)
+        data['manufacturer'] = self.manufacturer
+        data['model'] = self.model
         data['price'] = int(re.sub("\D", "", self.soup.find_all("strong", itemprop='price')[0].get_text()))
         data['year'] = int(self.soup.find_all("td", attrs={'data-sticky-header-value-src': 'year'})[0].get_text()[-4:])
         data['odometer'] = int(self._parse_tr('Tachometr:', digits=True))
