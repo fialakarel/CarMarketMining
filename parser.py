@@ -11,11 +11,11 @@ class CarParser:
     Class extracting data from car advertising page
     """
 
-    def __init__(self, brand=None, model=None, id=None, debug=False):
-        self.brand = brand
+    def __init__(self, manufacturer=None, model=None, id=None, debug=False):
+        self.manufacturer = manufacturer
         self.model = model
         if id:
-            r = requests.get('https://www.sauto.cz/osobni/detail/%s/%s/%d' % (brand, model, id)).text
+            r = requests.get('https://www.sauto.cz/osobni/detail/%s/%s/%d' % (manufacturer, model, id)).text
             self.soup = BeautifulSoup(r, "lxml")
         else:
             self.soup = None
@@ -40,20 +40,20 @@ class CarParser:
        'výškově nastavitelné sedadlo řidiče', 'zadní stěrač',
        'zaslepení zámků', 'zámek řadící páky']
 
-    def parse(self, brand=None, model=None, id=None):
+    def parse(self, manufacturer=None, model=None, id=None):
         """
         Parse car page
-        :param brand: brand string or None to use brand from constructor (default: None)
-        :param model: model string or None to use brand from constructor (default: None)
+        :param manufacturer: manufacturer string or None to use manufacturer from constructor (default: None)
+        :param model: model string or None to use manufacturer from constructor (default: None)
         :param id: integer of the advert id or None to use id from constructor (default: None)
         :return: dictionary with parsed car
         """
-        if brand is not None:
-            self.brand = brand
+        if manufacturer is not None:
+            self.manufacturer = manufacturer
         if model is not None:
             self.model = model
         if id is not None:
-            r = requests.get('https://www.sauto.cz/osobni/detail/%s/%s/%d' % (brand, model, id)).text
+            r = requests.get('https://www.sauto.cz/osobni/detail/%s/%s/%d' % (manufacturer, model, id)).text
             self.soup = BeautifulSoup(r, "lxml")
         data = dict()
         data['price'] = int(re.sub("\D", "", self.soup.find_all("strong", itemprop='price')[0].get_text()))
@@ -101,7 +101,7 @@ class PageParser:
     Class parsing sauto page
     """
 
-    def __init__(self, debug=False):
+    def __init__(self, model, debug=False):
         self.debug = debug
         self.page_url = 'https://www.sauto.cz/hledani'
         self.params = (
@@ -119,8 +119,8 @@ class PageParser:
             ('priceMin', '100000'),
             ('condition', ['4', '2', '1']),
             ('category', '1'),
-            ('manufacturer', '93'),
-            ('model', '707'),
+            ('manufacturer', str(model[0])),
+            ('model', str(model[1])),
             ('nocache', '658'),
         )
         pass
