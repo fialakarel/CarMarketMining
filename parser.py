@@ -107,32 +107,43 @@ class PageParser:
     Class parsing sauto page
     """
 
-    def __init__(self, model, debug=False):
+    def __init__(self, model, debug=False, custom_models_list=None):
         """
         :param model: tuple (manufacturer_id, model_id)
         :param debug: debug mode (default: False)
         """
+
+        models_list = {('skoda', 'fabia'): (93, 707),
+                       ('skoda', 'octavia'): (93, 705),
+                       ('skoda', 'rapid'): (93, 6445)}
+        if custom_models_list:
+            print('Models_list replaced.\n%s' % str(custom_models_list))
+            models_list = custom_models_list
+        self.model = model
         self.debug = debug
         self.page_url = 'https://www.sauto.cz/hledani'
-        self.params = (
-            ('ajax', '2'),
-            ('stk', '1'),
-            ('notCrashed', '1'),
-            ('first', '1'),
-            ('aircondition', '2'),
-            ('gearbox', '1'),
-            ('state', '1'),
-            ('fuel', '1'),
-            ('tachometrMax', '75000'),
-            ('yearMin', '2015'),
-            ('priceMax', '500000'),
-            ('priceMin', '100000'),
-            ('condition', ['4', '2', '1']),
-            ('category', '1'),
-            ('manufacturer', str(model[0])),
-            ('model', str(model[1])),
-            ('nocache', '658'),
-        )
+        try:
+            self.params = (
+                ('ajax', '2'),
+                ('stk', '1'),
+                ('notCrashed', '1'),
+                ('first', '1'),
+                ('aircondition', '2'),
+                ('gearbox', '1'),
+                ('state', '1'),
+                ('fuel', '1'),
+                ('tachometrMax', '75000'),
+                ('yearMin', '2015'),
+                ('priceMax', '500000'),
+                ('priceMin', '100000'),
+                ('condition', ['4', '2', '1']),
+                ('category', '1'),
+                ('manufacturer', str(models_list[model][0])),
+                ('model', str(models_list[model][1])),
+                ('nocache', '658'),
+            )
+        except KeyError:
+            raise KeyError('Unknown manufacturer or model.')
         pass
 
     def get_page_data(self, page):
@@ -165,7 +176,7 @@ class PageParser:
                 break
             data = self.get_page_data(page)
             for x in data['advert']:
-                cars.append(CarParser('skoda', 'fabia', x['advert_id']).parse())
+                cars.append(CarParser(self.model[0], self.model[1], x['advert_id']).parse())
         if self.debug:
             print("PageParser: number of cars: %d" % len(cars))
         cars = dict(zip(cars[0], zip(*[d.values() for d in cars])))
