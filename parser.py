@@ -58,6 +58,9 @@ class CarParser:
             r = requests.get('https://www.sauto.cz/osobni/detail/%s/%s/%d' % (manufacturer, model, id)).text
             self.soup = BeautifulSoup(r, "lxml")
         data = dict()
+        data['advert_id'] = str(id)
+        data['manufacturer'] = manufacturer
+        data['model'] = model
         data['price'] = int(re.sub("\D", "", self.soup.find_all("strong", itemprop='price')[0].get_text()))
         data['year'] = int(self.soup.find_all("td", attrs={'data-sticky-header-value-src': 'year'})[0].get_text()[-4:])
         data['odometer'] = int(self._parse_tr('Tachometr:', digits=True))
