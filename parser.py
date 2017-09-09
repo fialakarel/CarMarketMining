@@ -20,6 +20,25 @@ class CarParser:
         else:
             self.soup = None
         self.debug = debug
+        self.possible_equipment = ['ABS', 'CD přehrávač', 'EDS', 'ESP', 'Start/Stop systém', 'USB',
+       'alarm', 'automatická klimatizace', 'automatické svícení',
+       'autorádio', 'bluetooth', 'centrální zamykání',
+       'deaktivace airbagu spolujezdce', 'dálkové centrální zamykání',
+       'dělená zadní sedadla', 'el. ovládání oken', 'el. ovládání zrcátek',
+       'el. seřiditelná sedadla', 'el. sklopná zrcátka', 'imobilizér',
+       'isofix', 'klimatizovaná přihrádka', 'litá kola', 'mlhovky',
+       'nastavitelná sedadla', 'nastavitelný volant', 'nouzové brždění',
+       'originál autorádio', 'palubní počítač', 'panoramatická střecha',
+       'parkovací senzory', 'posilovač řízení',
+       'protiprokluzový systém kol (ASR)', 'přídavná světla',
+       'příprava pro isofix', 'příprava pro telefon',
+       'senzor opotřebení brzd. destiček', 'senzor tlaku v pneumatikách',
+       'střešní nosič', 'tažné zařízení', 'telefon', 'tempomat',
+       'tónovaná skla', 'venkovní teploměr', 'vstup paměťové karty',
+       'vyhřívaná zrcátka', 'vyjímatelná zadní sedadla',
+       'výškově nastavitelná sedadla',
+       'výškově nastavitelné sedadlo řidiče', 'zadní stěrač',
+       'zaslepení zámků', 'zámek řadící páky']
 
     def parse(self, brand=None, model=None, id=None):
         """
@@ -48,7 +67,14 @@ class CarParser:
         data['service_book'] = self._parse_tr('Servisní knížka:') == "ano"
         data['origin_country'] = self._parse_tr('Země původu:')
         data['stk'] = self._parse_tr('STK:')
-
+        data['airbags'] = self._parse_tr('Počet airbagů:')
+        data['bodywork'] = self._parse_tr('Karoserie:')
+        data['condition'] = self._parse_tr('Stav:')
+        data['colour'] = self._parse_tr('Barva:')
+        data['places_nr'] = self._parse_tr('Počet míst:')
+        data['doors_nr'] = self._parse_tr('Počet dveří:')
+        for eq in self.possible_equipment:
+            data[eq] = self._browse_equipment_list(eq)
         return data
         # TODO: complete features list and store it
 
@@ -63,6 +89,12 @@ class CarParser:
                     return children[1].get_text()
         return ""
 
+    def _browse_equipment_list(self, equip_name):
+        return equip_name in self._all_equipment()
+
+    def _all_equipment(self):
+        equip_div=self.soup.find_all('div',id='equipList')
+        return [li.text for li in equip_div[0].find_all('li')]
 
 class PageParser:
     """
