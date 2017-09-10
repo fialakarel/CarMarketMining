@@ -80,10 +80,12 @@ class CarParser:
         data['colour'] = self._parse_tr('Barva:')
         data['places_nr'] = self._parse_tr('Počet míst:')
         data['doors_nr'] = self._parse_tr('Počet dveří:')
+        equipment = self._all_equipment()
+        if len(equipment) == 0:
+            return None
         for eq in self.possible_equipment:
-            data["equipment_%s" % eq] = self._browse_equipment_list(eq)
+            data["equipment_%s" % eq] = eq in equipment
         return data
-        # TODO: complete features list and store it
 
     def _parse_tr(self, key, digits=False):
         trs = self.soup.find_all('tr')
@@ -96,12 +98,13 @@ class CarParser:
                     return children[1].get_text()
         return ""
 
-    def _browse_equipment_list(self, equip_name):
-        return equip_name in self._all_equipment()
-
     def _all_equipment(self):
         equip_div = self.soup.find_all('div', id='equipList')
-        return [li.text for li in equip_div[0].find_all('li')]
+        try:
+            return [li.text for li in equip_div[0].find_all('li')]
+        except IndexError:
+            #print('No equip for car: %s, %s, %s' % (self.manufacturer, self.model, str(self.id)))
+            return []
 
 
 class PageParser:
@@ -109,19 +112,11 @@ class PageParser:
     Class parsing sauto page
     """
 
-    def __init__(self, model, debug=False, custom_models_list=None):
+    def __init__(self, debug=False):
         """
-        :param model: tuple (manufacturer_id, model_id)
         :param debug: debug mode (default: False)
         """
 
-        models_list = {('skoda', 'fabia'): (93, 707),
-                       ('skoda', 'octavia'): (93, 705),
-                       ('skoda', 'rapid'): (93, 6445)}
-        if custom_models_list:
-            print('Models_list replaced.\n%s' % str(custom_models_list))
-            models_list = custom_models_list
-        self.model = model
         self.debug = debug
         self.page_url = 'https://www.sauto.cz/hledani'
         try:
@@ -129,19 +124,10 @@ class PageParser:
                 ('ajax', '2'),
                 ('stk', '1'),
                 ('notCrashed', '1'),
-                ('first', '1'),
-                ('aircondition', '2'),
-                ('gearbox', '1'),
                 ('state', '1'),
-                ('fuel', '1'),
-                ('tachometrMax', '75000'),
-                ('yearMin', '2015'),
-                ('priceMax', '500000'),
-                ('priceMin', '100000'),
+                ('yearMin', '2000'),
                 ('condition', ['4', '2', '1']),
                 ('category', '1'),
-                ('manufacturer', str(models_list[model][0])),
-                ('model', str(models_list[model][1])),
                 ('nocache', '658'),
             )
         except KeyError:
@@ -166,19 +152,20 @@ class PageParser:
         :param pages: limits number of pages
         :return: pandas DataFrame
         """
-        pages = self.get_page_data(1)['paging']['pages']
+        page = 0
         cars = []
-        if self.debug:
-            print("PageParser: number of pages: %d" % (len(pages)))
-        for pageindex in pages:
-            page = pageindex['i']
+        while True:
+            page += 1
             if self.debug:
-                print("PageParser: parsing page %s" % str(page))
-            if pages_nr and int(page) > pages_nr:
+                print("PageParser: parsing page %s, cars loaded: %d" % (str(page), len(cars)))
+            if pages_nr and page >= pages_nr:
                 break
-            data = self.get_page_data(page)
+            data = self.get_page_data(str(page))
+            if len(data['advert']) == 0:
+                break
             for x in data['advert']:
-                cars.append(CarParser(self.model[0], self.model[1], x['advert_id']).parse())
+                cars.append(CarParser(x['manufacturer_name'], x['model_name'], x['advert_id']).parse())
+        cars = [x for x in cars if x is not None] # remove cars without equipment
         if self.debug:
             print("PageParser: number of cars: %d" % len(cars))
         cars = dict(zip(cars[0], zip(*[d.values() for d in cars])))
